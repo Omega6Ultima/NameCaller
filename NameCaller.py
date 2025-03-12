@@ -2,7 +2,7 @@
 # Name:        NameCaller
 # Purpose:
 #
-# Author:      Dustin
+# Author:      Dustin Gehm
 #
 # Created:     12/08/2018
 # Copyright:   (c) Dustin 2018
@@ -36,8 +36,10 @@ class NameState(Enum):
 
 def queryNewList():
     sortie = [];
-    fileName = input("Enter the filename: ").strip() + ".txt";
-##    fileName = "nctest.txt";
+    fileName = input("Enter the filename: ").strip();
+
+    if not fileName.endswith(".txt"):
+        fileName += ".txt";
 
     try:
         infile = open(fileName);
@@ -103,13 +105,16 @@ def main():
     done = False;
     displayHelp = False;
     displayNames = False;
-    buttons = {"pick" : Button.Button(10, 10, 40, 40, (128, 128, 128), smallFont.render("Pick", False, (0, 0, 0))), \
-               "green" : Button.Button(60, 10, 40, 40, (128, 128, 128), smallFont.render("Green", False, (0, 0, 0))), \
-               "absent" : Button.Button(110, 10, 40, 40, (128, 128, 128), smallFont.render("Absent", False, (0, 0, 0))), \
-               "list" : Button.Button(160, 10, 40, 40, (128, 128, 128), smallFont.render("List", False, (0, 0, 0))), \
-               "load" : Button.Button(210, 10, 40, 40, (128, 128, 128), smallFont.render("Load", False, (0, 0, 0))), \
-               "save" : Button.Button(260, 10, 40, 40, (128, 128, 128), smallFont.render("Save", False, (0, 0, 0))), \
-               "reset" : Button.Button(310, 10, 40, 40, (128, 128, 128), smallFont.render("Reset", False, (0, 0, 0)))};
+    buttons = {
+        # "pick" : Button.Button(10, 10, 40, 40, (128, 128, 128), smallFont.render("Pick", False, (0, 0, 0))),
+        "pick" : Button.Button((10, 10), 40, 40, "Pick", smallFont, (128, 128, 128)),
+        "green" : Button.Button((60, 10), 40, 40, "Green", smallFont, (128, 128, 128)),
+        "absent" : Button.Button((110, 10), 40, 40, "Absent", smallFont, (128, 128, 128)),
+        "list" : Button.Button((160, 10), 40, 40, "List", smallFont, (128, 128, 128)),
+        "load" : Button.Button((210, 10), 40, 40, "Load", smallFont, (128, 128, 128)),
+        "save" : Button.Button((260, 10), 40, 40, "Save", smallFont, (128, 128, 128)),
+        "reset" : Button.Button((310, 10), 40, 40, "Reset", smallFont, (128, 128, 128))
+        };
 
     name = "";
     nameIndex = -1;
@@ -129,29 +134,29 @@ def main():
         events = pygame.event.get();
 
         for e in events:
-            if e.type is pygame.QUIT:
+            if e.type == pygame.QUIT:
                 done = True;
-            elif e.type is pygame.KEYDOWN:
-                if e.key is pygame.K_ESCAPE:
+            elif e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_ESCAPE:
                     done = True;
-            elif e.type is pygame.MOUSEBUTTONUP:
-                if e.button is 1:
-                    if buttons["pick"].checkClick(e.pos):
+            elif e.type == pygame.MOUSEBUTTONUP:
+                if e.button == 1:
+                    if buttons["pick"].wasClicked(e.pos):
                         name, nameIndex = pick(nameIndex, names, colors);
-                    elif buttons["green"].checkClick(e.pos):
+                    elif buttons["green"].wasClicked(e.pos):
                         if nameIndex >= 0:
                             colors[nameIndex] = NameState.GREEN;
-                    elif buttons["absent"].checkClick(e.pos):
+                    elif buttons["absent"].wasClicked(e.pos):
                        if nameIndex >= 0:
                            colors[nameIndex] = NameState.ABSENT;
-                    elif buttons["list"].checkClick(e.pos):
+                    elif buttons["list"].wasClicked(e.pos):
                         if displayNames:
                             pygame.display.set_mode(windim);
                         else:
                             pygame.display.set_mode(expWindim);
 
                         displayNames = not displayNames;
-                    elif buttons["load"].checkClick(e.pos):
+                    elif buttons["load"].wasClicked(e.pos):
                         name = "";
                         nameIndex = -1;
                         names = queryNewList();
@@ -160,7 +165,7 @@ def main():
                             namesLen += len(n) + 1;
                         colors = [NameState.BLACK, ] * len(names);
                         expWindim = expandWindim(windim, namesLen, medFont);
-                    elif buttons["save"].checkClick(e.pos):
+                    elif buttons["save"].wasClicked(e.pos):
                         greenNames = "";
                         blackNames = "";
                         redNames = "";
@@ -198,7 +203,7 @@ def main():
 
                         outfile.close();
 
-                    elif buttons["reset"].checkClick(e.pos):
+                    elif buttons["reset"].wasClicked(e.pos):
                         name = "";
                         nameIndex = -1;
                         colors = [NameState.BLACK, ] * len(names);

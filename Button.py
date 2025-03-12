@@ -2,7 +2,7 @@
 # Name:        Button
 # Purpose:     Interactive GUI elements using pygame
 #
-# Author:      gehmd
+# Author:      Dustin Gehm
 #
 # Created:     05/04/2019
 #-------------------------------------------------------------------------------
@@ -12,10 +12,17 @@ from enum import Enum;
 import pygame;
 from pygame import Vector2;
 
-from Colors import *;
+import Colors;
 
-class draw:
-    def aaline(surface, color, start_pos, end_pos, width = 1, blend = 1, pygameEnds = True):
+class Draw:
+    @staticmethod
+    def aaline(surface: pygame.Surface,
+               color: tuple[int, int, int] or tuple[int, int, int, int],
+               start_pos: Vector2 or list[float, float] or tuple[float, float],
+               end_pos: Vector2 or list[float, float] or tuple[float, float],
+               width: int=1,
+               blend: int=1,
+               pygameEnds: bool=True) -> pygame.Rect:
         polygonToLineDist = 0;
 
         if not isinstance(start_pos, Vector2):
@@ -64,7 +71,14 @@ class draw:
 
             return result[0].unionall(result[1:]);
 
-    def aalines(surface, color, closed, points, width = 1, blend = 1, pygameEnds = True):
+    @staticmethod
+    def aalines(surface: pygame.Surface,
+                color: tuple[int, int, int] or tuple[int, int, int, int],
+                closed: bool,
+                points: list[Vector2 or list[float, float] or tuple[float, float]],
+                width: int=1,
+                blend: int=1,
+                pygameEnds: bool=True) -> pygame.Rect:
         polygonToLineDist = 0;
 
         if not isinstance(points, list):
@@ -103,12 +117,12 @@ class draw:
                 tempVec = ((p - points[i]).rotate(90).normalize());
                 tempVec *= (width / 2) - polygonToLineDist;
 
-                pygame.draw.line(surface, RED, tempVec + p, p - tempVec);
+                pygame.draw.line(surface, Colors.get_color("red"), tempVec + p, p - tempVec);
 
                 tempVec = ((points[i + 2] - p).rotate(90).normalize());
                 tempVec *= (width / 2) - polygonToLineDist;
 
-                pygame.draw.line(surface, BLUE, tempVec + p, p - tempVec);
+                pygame.draw.line(surface, Colors.get_color("blue"), tempVec + p, p - tempVec);
 
             perpUnits.append((points[-1] - points[-2]).rotate(90).normalize());
 
@@ -135,7 +149,7 @@ class draw:
             polyPoints = [p + polyUnits[i] for i, p in enumerate(points)];
             polyPoints.extend([p - polyUnits[-(i + 1)] for i, p in enumerate(reversed(points))]);
 
-            for p, col in zip(polyPoints, [RED, ORANGE_RED, ORANGE, YELLOW, YELLOW_GREEN, GREEN, BLUE, ALICE_BLUE, PURPLE]):
+            for p, col in zip(polyPoints, Colors.get_colors(["red", "orange_red", "orange", "yellow", "yellow_green", "green", "blue", "alice_blue", "purple"])):
                 pygame.draw.circle(surface, col, (int(p[0]), int(p[1])), 10, 0);
 
             if not closed:
@@ -193,7 +207,7 @@ class _UIBase:
 
         pos is a tuple (x, y)
 
-        Return a boolean value whether or not pos was within the element's area.
+        Return a boolean value whether pos was within the element's area.
         """
 
         if self.pos[0] < pos[0] < self._pos2[0]:
@@ -238,7 +252,7 @@ class ArrowCurve(Enum):
 class Arrow(_UIBase):
     """An arrow between two points"""
 
-    def __init__(self, srcPos, dstPos, lineWidth = 1, color = BLACK, curveFactor = 0, curveDir = ArrowCurve.CURVE_LEFT):
+    def __init__(self, srcPos, dstPos, lineWidth = 1, color = Colors.get_color("black"), curveFactor = 0, curveDir = ArrowCurve.CURVE_LEFT):
         """srcPos is a tuple of (x, y)
         dstPos is a tuple of (x, y)
         lineWidth is in pixels
@@ -410,7 +424,7 @@ class Arrow(_UIBase):
         #pygame.draw.lines(screen, self.color, False, self._points, self.lineWidth);
 
         for i in range(len(self._points) - 1):
-            draw.aaline(screen, self.color, self._points[i], self._points[i + 1], self.lineWidth);
+            Draw.aaline(screen, self.color, self._points[i], self._points[i + 1], self.lineWidth);
             pass;
 
         #debug draw
@@ -422,7 +436,7 @@ class Arrow(_UIBase):
         pygame.draw.line(screen, self.color, self._dst + self.pos, self.p2, self.lineWidth);
 
 class MultiArrow(Arrow):
-    def __init__(self, srcPos, dstPos, lineWidth = 1, color  =BLACK, numArrows = 2):
+    def __init__(self, srcPos, dstPos, lineWidth = 1, color = Colors.get_color("black"), numArrows = 2):
         """srcPos is a tuple of (x, y)
         dstPos is a tuple of (x, y)
         lineWidth is in pixels
@@ -474,7 +488,7 @@ class MultiArrow(Arrow):
 class Label(_UIBase):
     """A class for rendered text."""
 
-    def __init__(self, pos, text, font, color = BLACK):
+    def __init__(self, pos, text, font, color = Colors.get_color("black")):
         """pos is a tuple of (x, y)
         text is a string to be rendered
         font is a pygame.Font or pygame.SysFont object
@@ -526,7 +540,7 @@ class Button(Label):
     #how many pixels away from the text should the rectangle be
     textPadding = 10;
 
-    def __init__(self, pos, width, height, text, font, color = BLACK):
+    def __init__(self, pos, width, height, text, font, color = Colors.get_color("black")):
         """pos is a tuple of (x, y)
         width and height are in pixels
         text is a string to be rendered
@@ -556,7 +570,7 @@ class Button(Label):
 class Slider(_UIBase):
     """A class for a slider with a list of values."""
 
-    def __init__(self, pos, width, height, values, font, color = BLACK):
+    def __init__(self, pos, width, height, values, font, color = Colors.get_color("black")):
         """pos is a tuple of (x, y)
         width and height are in pixels
         values is a list of values that the slider can set to
@@ -662,7 +676,7 @@ class Slider(_UIBase):
     def _getSliderPos(self):
         return self.pos + (self._curVal * self._tickWidth, 0);
 
-    def slidingMode(self, screen, fillColor = WHITE):
+    def slidingMode(self, screen, fillColor = Colors.get_color("white")):
         """Control the slider with the mouse
         Assumes that a mouse button is held down when entering this function
         Exits when Escape is pressed or a mouse button is let go
@@ -738,7 +752,7 @@ class Input(Label):
     #how many pixels away from the text should the rectangle be
     textPadding = 10;
 
-    def __init__(self, pos, width, height, font, color = BLACK):
+    def __init__(self, pos, width, height, font, color = Colors.get_color("black")):
         """pos is a tuple of (x, y)
         width and height are in pixels
         font is a pygame.Font or pygame.SysFont object
@@ -797,7 +811,7 @@ class Input(Label):
 
         self.markDirty();
 
-    def inputMode(self, screen, fillColor = WHITE):
+    def inputMode(self, screen, fillColor = Colors.get_color("white")):
         """Capture keyboard events until return(enter), escape or a mouse button is pressed
 
         screen is a pygame.Surface object
@@ -881,10 +895,10 @@ class Input(Label):
 class UIManager:
     """A class to categorize and selectively interact with and draw UI elements."""
 
-    def __init__(self, elemDict = {}):
+    def __init__(self, elemDict = None):
         """elemDict is a dictionary of string: UI elements"""
 
-        self._elems = elemDict;
+        self._elems = elemDict if elemDict else {};
         #None is the key for the master category
         self._cats = {None: []};
         #categories that have been warned about not existing
@@ -1059,7 +1073,7 @@ class UIManager:
         if modifier != None:
             #fetch modified categories
             for name in self.fetchCategories(categories, modifier):
-                self._elems[name].draw(screen);
+                self._elems[name].Draw(screen);
         else:
             #fetch category given
             for name in self._cats[categories]:
@@ -1148,10 +1162,10 @@ if __name__ == '__main__':
 
     #region test Arrow
     testArrows = [
-                    Arrow((200, 150), (300, 150), color = RED),
-                    Arrow((200, 200), (250, 250), color = BLUE),
-                    Arrow((300, 200), (300, 250), color = GREEN),
-                    Arrow((375, 250), (350, 150), color = YELLOW),
+                    Arrow((200, 150), (300, 150), color = Colors.get_color("red")),
+                    Arrow((200, 200), (250, 250), color = Colors.get_color("blue")),
+                    Arrow((300, 200), (300, 250), color = Colors.get_color("green")),
+                    Arrow((375, 250), (350, 150), color = Colors.get_color("yellow")),
 
                     Arrow((390, 390), (350, 350), 3),
                     Arrow((290, 290), (330, 330), 3),
@@ -1193,7 +1207,7 @@ if __name__ == '__main__':
 
     while not done:
         #fill the screen with a color
-        screen.fill(GRAY);
+        screen.fill(Colors.get_color("gray"));
 
         events = pygame.event.get();
 
@@ -1271,25 +1285,25 @@ if __name__ == '__main__':
         width = 50;
 
         Label((300, 550), "pygame", TestFont).draw(screen);
-        pygame.draw.line(screen, SADDLE_BROWN, (300, 600), (450, 650), width);
-        pygame.draw.line(screen, BEIGE, (350, 550), (200, 400), width);
-        #pygame.draw.circle(screen, SADDLE_BROWN, (400, 600), 5);
+        pygame.draw.line(screen, Colors.get_color("saddle_brown"), (300, 600), (450, 650), width);
+        pygame.draw.line(screen, Colors.get_color("beige"), (350, 550), (200, 400), width);
+        #pygame.draw.circle(screen, Colors.get_color("saddle_brown"), (400, 600), 5);
 
         Label((200, 550), "Button", TestFont).draw(screen);
-        draw.aaline(screen, SADDLE_BROWN, (200, 600), (350, 650), width);
-        draw.aaline(screen, BEIGE, (250, 550), (100, 400), width);
-        #pygame.draw.circle(screen, SADDLE_BROWN, (200, 600), 5);
+        Draw.aaline(screen, Colors.get_color("saddle_brown"), (200, 600), (350, 650), width);
+        Draw.aaline(screen, Colors.get_color("beige"), (250, 550), (100, 400), width);
+        #pygame.draw.circle(screen, Colors.get_color("saddle_brown"), (200, 600), 5);
 
         aaWidth = width;
 
         points = [(600, 600), (500, 600), (400, 400), (500, 450)];
-        draw.aalines(screen, SADDLE_BROWN, True, points, aaWidth, pygameEnds=True);
+        Draw.aalines(screen, Colors.get_color("saddle_brown"), True, points, aaWidth, pygameEnds=True);
 
 ##        diffPoints = [p - (-50, 200) for p in points];
 ##        draw.aalines(screen, VIOLET, False, diffPoints, aaWidth, pygameEnds = False);
 
         for p in points:
-            pygame.draw.circle(screen, LIME, (int(p[0]), int(p[1])), 10, 0);
+            pygame.draw.circle(screen, Colors.get_color("lime"), (int(p[0]), int(p[1])), 10, 0);
         #endregion
 
         for arrow in testArrows:
@@ -1300,7 +1314,7 @@ if __name__ == '__main__':
 
         adj = Vector2(10, -10)
 
-        for index, color in enumerate([BLUE, GREEN, RED, PURPLE, ORANGE, FUCHSIA, PINK, LIME, DARK_GRAY, DARK_KHAKI]):
+        for index, color in enumerate(Colors.get_colors(["blue", "green", "red", "purple", "orange", "fuchsia", "pink", "lime", "dark_gray", "dark_khaki"])):
             Arrow(index * adj + src, index * adj + dst, 1, color = color, curveFactor = index, curveDir = ArrowCurve.CURVE_LEFT).draw(screen);
             Arrow(index * -adj + src, index * -adj + dst, 1, color = color, curveFactor = index, curveDir = ArrowCurve.CURVE_RIGHT).draw(screen);
             pass;
